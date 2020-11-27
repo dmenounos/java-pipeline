@@ -4,28 +4,22 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class MapStep<I, O> implements Iterable<O> {
+public class MapStep<I, O> extends BaseStep<I, O> {
 
-	private final Iterable<I> prevIterable;
 	private final Function<I, O> function;
 
 	public MapStep(Iterable<I> prevIterable, Function<I, O> function) {
-		Objects.requireNonNull(prevIterable);
-		Objects.requireNonNull(function);
+		super(prevIterable);
 
-		this.prevIterable = prevIterable;
+		Objects.requireNonNull(function);
 		this.function = function;
 	}
 
 	@Override
 	public Iterator<O> iterator() {
-		return new Iterator<O>() {
+		return new BaseIterator<I, O>(prevIterable.iterator()) {
 
-			private Iterator<I> prevIterator = prevIterable.iterator();
-			private Boolean foundNext;
-			private O nextValue;
-
-			private void tryAdvance() {
+			protected void tryAdvance() {
 				if (foundNext != null) {
 					return;
 				}
@@ -38,19 +32,6 @@ public class MapStep<I, O> implements Iterable<O> {
 					I value = prevIterator.next();
 					nextValue = function.apply(value);
 				}
-			}
-
-			@Override
-			public boolean hasNext() {
-				tryAdvance();
-				return foundNext;
-			}
-
-			@Override
-			public O next() {
-				tryAdvance();
-				foundNext = null;
-				return nextValue;
 			}
 		};
 	}

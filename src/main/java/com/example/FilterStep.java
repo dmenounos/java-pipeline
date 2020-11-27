@@ -4,28 +4,22 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public class FilterStep<T> implements Iterable<T> {
+public class FilterStep<T> extends BaseStep<T, T> {
 
-	private final Iterable<T> prevIterable;
 	private final Predicate<T> predicate;
 
 	public FilterStep(Iterable<T> prevIterable, Predicate<T> predicate) {
-		Objects.requireNonNull(prevIterable);
-		Objects.requireNonNull(predicate);
+		super(prevIterable);
 
-		this.prevIterable = prevIterable;
+		Objects.requireNonNull(predicate);
 		this.predicate = predicate;
 	}
 
 	@Override
 	public Iterator<T> iterator() {
-		return new Iterator<T>() {
+		return new BaseIterator<T, T>(prevIterable.iterator()) {
 
-			private Iterator<T> prevIterator = prevIterable.iterator();
-			private Boolean foundNext;
-			private T nextValue;
-
-			private void tryAdvance() {
+			protected void tryAdvance() {
 				if (foundNext != null) {
 					return;
 				}
@@ -42,19 +36,6 @@ public class FilterStep<T> implements Iterable<T> {
 						break;
 					}
 				}
-			}
-
-			@Override
-			public boolean hasNext() {
-				tryAdvance();
-				return foundNext;
-			}
-
-			@Override
-			public T next() {
-				tryAdvance();
-				foundNext = null;
-				return nextValue;
 			}
 		};
 	}

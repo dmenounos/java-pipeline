@@ -22,21 +22,34 @@ public class MapStep<I, O> implements Iterable<O> {
 		return new Iterator<O>() {
 
 			private Iterator<I> prevIterator = prevIterable.iterator();
+			private Boolean foundNext;
 			private O nextValue;
+
+			private void tryAdvance() {
+				if (foundNext != null) {
+					return;
+				}
+
+				foundNext = Boolean.FALSE;
+				nextValue = null;
+
+				if (prevIterator.hasNext()) {
+					foundNext = Boolean.TRUE;
+					I value = prevIterator.next();
+					nextValue = function.apply(value);
+				}
+			}
 
 			@Override
 			public boolean hasNext() {
-				if (prevIterator.hasNext()) {
-					I value = prevIterator.next();
-					nextValue = function.apply(value);
-					return true;
-				}
-
-				return false;
+				tryAdvance();
+				return foundNext;
 			}
 
 			@Override
 			public O next() {
+				tryAdvance();
+				foundNext = null;
 				return nextValue;
 			}
 		};

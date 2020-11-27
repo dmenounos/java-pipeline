@@ -22,24 +22,38 @@ public class FilterStep<T> implements Iterable<T> {
 		return new Iterator<T>() {
 
 			private Iterator<T> prevIterator = prevIterable.iterator();
+			private Boolean foundNext;
 			private T nextValue;
 
-			@Override
-			public boolean hasNext() {
+			private void tryAdvance() {
+				if (foundNext != null) {
+					return;
+				}
+
+				foundNext = Boolean.FALSE;
+				nextValue = null;
+
 				while (prevIterator.hasNext()) {
 					T value = prevIterator.next();
 
 					if (predicate.test(value)) {
+						foundNext = Boolean.TRUE;
 						nextValue = value;
-						return true;
+						break;
 					}
 				}
+			}
 
-				return false;
+			@Override
+			public boolean hasNext() {
+				tryAdvance();
+				return foundNext;
 			}
 
 			@Override
 			public T next() {
+				tryAdvance();
+				foundNext = null;
 				return nextValue;
 			}
 		};
